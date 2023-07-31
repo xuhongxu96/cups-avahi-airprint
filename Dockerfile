@@ -1,31 +1,36 @@
-FROM alpine:3.16
+FROM debian:stable-slim
 
-# Install the packages we need. Avahi will be included
-RUN echo -e "https://dl-cdn.alpinelinux.org/alpine/edge/testing\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories &&\
-	apk add --update cups \
-	cups-libs \
-	cups-pdf \
-	cups-client \
-	cups-filters \
-	cups-dev \
-	gutenprint \
-	gutenprint-libs \
-	gutenprint-doc \
-	gutenprint-cups \
-	ghostscript \
-	brlaser \
-	hplip \
-	avahi \
-	inotify-tools \
-	python3 \
-	python3-dev \
-	py3-pip \
-	build-base \
-	wget \
-	rsync \
-	&& pip3 --no-cache-dir install --upgrade pip \
-	&& pip3 install pycups \
-	&& rm -rf /var/cache/apk/*
+# ENV variables
+ENV DEBIAN_FRONTEND noninteractive
+ENV TZ "Asia/Shanghai"
+ENV CUPSADMIN admin
+ENV CUPSPASSWORD password
+
+# Install dependencies
+RUN apt-get update -qq  && apt-get upgrade -qqy \
+    && apt-get install -qqy \
+    apt-utils \
+    usbutils \
+    cups \
+    libcups2-dev \
+    cups-filters \
+    printer-driver-all \
+    printer-driver-cups-pdf \
+    printer-driver-foo2zjs \
+    foomatic-db-compressed-ppds \
+    openprinting-ppds \
+    hpijs-ppds \
+    hp-ppd \
+    hplip \
+    inotify-tools \
+    rsync \
+    python3-pip
+
+RUN apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+RUN pip3 install pycups
 
 # This will use port 631
 EXPOSE 631
